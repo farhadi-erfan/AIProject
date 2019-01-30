@@ -1,41 +1,50 @@
+from math import sqrt
+
 import numpy as np
 import idx2numpy
 
 
 class Util:
-    def __init__(self, images_addr, labels_addr):
-        self.img_addr = images_addr
-        self.labels_addr = labels_addr
-
-    def img_label(self):
-        images = idx2numpy.convert_from_file(self.img_addr)
-        labels = idx2numpy.convert_from_file(self.labels_addr)
-        return images, labels
+    @classmethod
+    def return_arr(self, addr):
+        return idx2numpy.convert_from_file(addr)
 
 
 class Cell:
     def __init__(self, vector_size, learning_rate):
         self.vec_size = vector_size
-        self.vector = [0] * vector_size
+        self.vector = np.random.uniform(0, 1, size=(28, 28))
         self.learning_rate = learning_rate
+        np.set_printoptions(linewidth=np.nan)
+
+    @staticmethod
+    def map_binary(x):
+        return 1 if x > 0 else 0
 
     def compute_output(self, input):
         res = 0
-        for i in range(self.vec_size):
-            res += self.vector[i] * input[i]
+        for i in range(int(sqrt(self.vec_size))):
+            for j in range(int(sqrt(self.vec_size))):
+                res += self.vector[i][j] * input[i][j]
 
         return res / self.vec_size
 
-    def update_vector(self, input, err):
-        for i in range(self.vec_size):
-            self.vector += self.learning_rate * input[i] * err
+    def downgrade(self, input):
+        self.vector -= input
+
+    def upgrade(self, input):
+        self.vector += input
+
+    def print_cell(self):
+        print(self.vector)
+        print('****')
 
 
 class Perceptron:
     def __init__(self):
-        self.cells = [Cell() for i in range(10)]
-        u = Util('../train-images-idx3-ubyte', '../train-labels-idx1-ubyte')
-        self.img, self.lbl = u.img_label()
+        self.cells = [Cell(28*28, 1) for i in range(10)]
+        self.img, self.lbl = Util.return_arr('../train-images-idx3-ubyte'), Util.return_arr('../train-labels-idx1-ubyte')
+        self.test_img, self.test_lbl = Util.return_arr('../t10k-images-idx3-ubyte'), Util.return_arr('../t10k-labels-idx1-ubyte')
 
     def compute_all_cells(self, img):
         a = []
@@ -44,23 +53,31 @@ class Perceptron:
         ind = a.index(max(a))
         return ind
 
-    def update_all_cells(self, img, err_arr):
+    def print_all_cells(self):
         for i in range(10):
-            self.cells[i].update_vector(img, err_arr[i])
-
-    @staticmethod
-    def construct_err_array(acc, rej):
-        a = [0] * 10
-        a[acc] = 1
-        a[rej] = -1
-        return a
+            self.cells[i].print_cell()
 
     def train(self):
         for i in range(60000):
+            if i % 2000 == 0:
+                print(i)
             res = self.compute_all_cells(self.img[i])
             if not res == self.lbl[i]:
-                err_arr = Perceptron.construct_err_array(self.lbl[i], res)
-                self.update_all_cells(self.img[i], err_arr)
+                self.cells[res].downgrade(self.img[i])
+                self.cells[self.lbl[i]].upgrade(self.img[i])
+        self.print_all_cells()
 
+    def test(self):
+        acc = 0
+        for i in range(10000):
+            res = self.compute_all_cells(img=self.test_img[i])
+            if res == self.test_lbl[i]:
+                acc += 1
+        print(acc / 10000)
+
+
+p = Perceptron()
+p.train()
+p.test()
 # np.set_printoptions(linewidth=np.nan)
 # print(img[12])
