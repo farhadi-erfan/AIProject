@@ -1,12 +1,12 @@
+import pickle
 from math import sqrt
-
 import numpy as np
 import idx2numpy
 
 
 class Util:
     @classmethod
-    def return_arr(self, addr):
+    def return_arr(cls, addr):
         return idx2numpy.convert_from_file(addr)
 
 
@@ -58,6 +58,7 @@ class Perceptron:
             self.cells[i].print_cell()
 
     def train(self):
+        print('training:')
         for i in range(60000):
             if i % 2000 == 0:
                 print(i)
@@ -75,9 +76,22 @@ class Perceptron:
                 acc += 1
         print(acc / 10000)
 
+    def save(self):
+        with open("perceptron.file", "wb") as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+
+    def load(self):
+        with open("perceptron.file", "rb") as f:
+            dump = pickle.load(f)
+            self.cells = dump.cells
+            self.lbl = dump.lbl
+            self.img = dump.img
+            self.test_img = dump.test_img
+            self.test_lbl = dump.test_lbl
+
 
 p = Perceptron()
 p.train()
+# p.save()
+# p.load()
 p.test()
-# np.set_printoptions(linewidth=np.nan)
-# print(img[12])

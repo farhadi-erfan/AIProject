@@ -1,3 +1,4 @@
+import pickle
 from math import sqrt
 
 import numpy as np
@@ -42,6 +43,17 @@ class Cell:
         print(self.vector)
         print('****')
 
+    def save(self, i):
+        with open("mira" + str(i) + ".file", "wb") as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+
+    def load(self, i):
+        with open("mira" + str(i) + ".file", "rb") as f:
+            dump = pickle.load(f)
+            self.vec_size = dump.vec_size
+            self.vector = dump.vector
+            self.learning_rate = dump.learning_rate
+
 
 class MIRA:
     def __init__(self):
@@ -70,6 +82,7 @@ class MIRA:
         return vec2
 
     def train(self):
+        print('training:')
         for i in range(60000):
             if i % 2000 == 0:
                 print(i)
@@ -92,7 +105,17 @@ class MIRA:
                 acc += 1
         print(acc / 10000)
 
+    def save(self):
+        for i in range(len(self.cells)):
+            self.cells[i].save(i)
+
+    def load(self):
+        for i in range(10):
+            self.cells[i].load(i)
+
 
 m = MIRA()
 m.train()
+# m.save()
+# m.load()
 m.test()
