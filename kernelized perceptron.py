@@ -29,6 +29,7 @@ class Util:
     @classmethod
     def rbf_kernel(cls, x, y):
         diff = x - y
+        print(diff, np.dot(diff, diff), np.exp(-np.dot(diff, diff)))
         return np.exp(-np.dot(diff, diff))
 
     @classmethod
@@ -125,14 +126,14 @@ class KernelizedPerceptron:
             self.test_lbl = dump.test_lbl
 
 
-kernel_func = Util.linear_kernel
-train_size = 5000
+kernel_func = Util.quadratic_kernel
+train_size = 7500
 test_size = 10000
 kernel = np.zeros((train_size, train_size))
 kernel_test = np.zeros((test_size, 1, train_size))
 
 kp = KernelizedPerceptron()
 kp.train()
-# kp.save()
-# kp.load()
+kp.save()
+kp.load()
 kp.test()
